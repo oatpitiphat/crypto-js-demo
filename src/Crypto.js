@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import CryptoJS from "crypto-js";
+import "milligram";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import logo_github from "./GitHub-Mark-32px.png";
 
 const Crypto = () => {
 
@@ -23,30 +28,77 @@ const Crypto = () => {
   const watchKey = watch("key");
 
   useEffect(() => {
-    if (watchMessageEn) {
-      const encrpted = CryptoJS.AES.encrypt(watchMessageEn, watchKey).toString();
-      setEncryptedText(encrpted);
+    const encrypt = () => {
+      try {
+        if (watchMessageEn) {
+          const encrpted = CryptoJS.AES.encrypt(watchMessageEn, watchKey).toString();
+          setEncryptedText(encrpted);
 
-      const buffer = Buffer.from(encrpted, 'utf-8');
-      setEncodeBase64Text(buffer.toString('base64'));
+          const buffer = Buffer.from(encrpted, 'utf-8');
+          setEncodeBase64Text(buffer.toString('base64'));
+        }
+        else {
+          setEncryptedText("");
+          setEncodeBase64Text("");
+        }
+      }
+      catch (ex) {
+        console.log(ex);
+      }
     }
 
-    if (watchMessageDe) {
-      const bytes = CryptoJS.AES.decrypt(watchMessageDe, watchKey)
-      setDecryptedText(bytes.toString(CryptoJS.enc.Utf8));
+    const decrypt = () => {
+      try {
+        if (watchMessageDe) {
+          const bytes = CryptoJS.AES.decrypt(watchMessageDe, watchKey)
+          setDecryptedText(bytes.toString(CryptoJS.enc.Utf8));
+        }
+        else {
+          setDecryptedText("");
+        }
+      }
+      catch (ex) {
+        console.log(ex);
+      }
     }
 
-    if (watchMessageDeCode) {
-      const buffer = Buffer.from(watchMessageDeCode, 'base64');
-      const text = buffer.toString('ascii');
-      const bytes = CryptoJS.AES.decrypt(text, watchKey)
-      setDecodeBase64Text(bytes.toString(CryptoJS.enc.Utf8));
+    const decode = () => {
+      try {
+        if (watchMessageDeCode) {
+          const buffer = Buffer.from(watchMessageDeCode, 'base64');
+          const text = buffer.toString('ascii');
+          const bytes = CryptoJS.AES.decrypt(text, watchKey)
+          setDecodeBase64Text(bytes.toString(CryptoJS.enc.Utf8));
+        }
+        else {
+          setDecodeBase64Text("");
+        }
+      }
+      catch (ex) {
+        console.log(ex);
+      }
     }
 
-  }, [watchMessageEn, watchMessageDe, watchMessageDeCode, watchKey])
+    encrypt();
+    decrypt();
+    decode();
+  }, [watchKey, watchMessageDe, watchMessageDeCode, watchMessageEn])
+
+  const notify = () => {
+    toast.success('Copied to clipboard!', {
+      position: "bottom-left",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
 
   return (
     <>
+      <h2>CryptoJS - Demo</h2>
       <form>
         <div>
           <label>Key: </label>
@@ -74,18 +126,40 @@ const Crypto = () => {
         </div>
       </form>
 
-      <p>
-        <span> Encrypt AES: {encryptedText}</span>
-      </p>
-      <p>
-        <span> Decrypt AES: {decryptedText}</span>
-      </p>
-      <p>
-        <span> Encrypt to Base64: {encodeBase64Text}</span>
-      </p>
-      <p>
-        <span> Decrypt to text: {decodeBase64Text}</span>
-      </p>
+      <CopyToClipboard text={encryptedText} onCopy={notify}>
+        <pre>
+          <code title="click to copy">
+            <b>Encrypt AES:</b> {encryptedText} <i className="clipboard-icon"></i>
+          </code>
+        </pre>
+      </CopyToClipboard>
+      <CopyToClipboard text={decryptedText} onCopy={notify}>
+        <pre>
+          <code title="click to copy">
+            <b>Decrypt AES:</b> {decryptedText}
+          </code>
+        </pre>
+      </CopyToClipboard>
+      <CopyToClipboard text={encodeBase64Text} onCopy={notify}>
+        <pre>
+          <code title="click to copy">
+            <b>Encrypt to Base64:</b> {encodeBase64Text}
+          </code>
+        </pre>
+      </CopyToClipboard>
+      <CopyToClipboard text={decodeBase64Text} onCopy={notify}>
+        <pre>
+          <code title="click to copy">
+            <b>Decrypt to text:</b> {decodeBase64Text}
+          </code>
+        </pre>
+      </CopyToClipboard>
+      <ToastContainer />
+      <div style={{ textAlign: "center" }}>
+        <a href="https://github.com/oatpitiphat/crypto-js-demo">
+          <img src={logo_github} alt="github-repository" />
+        </a>
+      </div>
     </>
   );
 }
